@@ -101,6 +101,17 @@ bookSchema.pre('save', function (next) {
   this.slug = slugify(this.title, { lower: true });
   next();
 });
+bookSchema.pre('findOneAndUpdate', async function (next) {
+  const title = this.getUpdate();
+  const book = await this.model.findOne(this.getQuery());
+  if (title !== book.title) {
+    book.slug = slugify(title.title, { lower: true });
+    await this.model.updateOne(this.getQuery(), {
+      slug: book.slug,
+    });
+  }
+  next();
+});
 bookSchema.pre(/^find/, function (next) {
   this.find({ secretBook: { $ne: true } });
   next();
