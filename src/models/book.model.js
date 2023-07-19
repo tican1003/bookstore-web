@@ -18,7 +18,13 @@ const bookSchema = new mongoose.Schema(
       ],
     },
     slug: String,
-    authors: [String],
+    authors: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        required: [true, 'A book must have least one authors'],
+      },
+    ],
     pageCount: {
       type: Number,
       required: [true, 'A book must have page number'],
@@ -89,6 +95,7 @@ const bookSchema = new mongoose.Schema(
     secretBook: {
       type: Boolean,
       default: false,
+      select: false,
     },
   },
   {
@@ -114,6 +121,10 @@ bookSchema.pre('findOneAndUpdate', async function (next) {
 });
 bookSchema.pre(/^find/, function (next) {
   this.find({ secretBook: { $ne: true } });
+  this.populate({
+    path: 'authors',
+    select: 'name -_id',
+  });
   next();
 });
 
